@@ -16,7 +16,7 @@
 		</dependency>
 	</dependencies>
 	<modules>
-		<module>web.ui</module>
+		<module>swome-web-ui</module>
 		<module>swome-core</module>
 	</modules>
 	<parent>
