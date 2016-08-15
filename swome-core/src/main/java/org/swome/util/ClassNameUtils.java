@@ -33,12 +33,4 @@ public class ClassNameUtils {
 		return _name;
 	}
 
-	public static boolean containsPackage(String _className) {
-		return _className.lastIndexOf('.') != -1;
-	}
-
-	public static boolean isClassName(String _varName) {
-		return _varName.matches("[A-Z].*");
-	}
-
 }

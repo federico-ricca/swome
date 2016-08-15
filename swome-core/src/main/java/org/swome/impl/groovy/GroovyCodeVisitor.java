@@ -24,6 +24,7 @@ public class GroovyCodeVisitor extends ClassCodeVisitorSupport {
 
 	public final void begin(SourceUnit _sourceUnit) {
 		sourceUnit = _sourceUnit;
+		System.out.println("creating artefact for: " + _sourceUnit.getName());
 		groovyClassArtefact = new GroovyClassArtefact();
 	}
 

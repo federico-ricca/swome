@@ -41,7 +41,7 @@ public class TitanGraphAdapter implements Graph {
 	}
 
 	@Override
-	public Collection<RelationArtefactPair<Relation, Artefact>> getRelationsFor(
+	public Collection<RelationArtefactPair> getRelationsFor(
 			String _id) {
 		// TODO Auto-generated method stub
 		return null;

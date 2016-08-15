@@ -15,20 +15,20 @@
  ***************************************************************************/
 package org.swome.core;
 
-public class RelationArtefactPair<E extends Relation, N extends Artefact> {
-	private E edge;
-	private N destination;
+public class RelationArtefactPair {
+	private Relation edge;
+	private Artefact destination;
 
-	public RelationArtefactPair(final E _edge, final N _dest) {
+	public RelationArtefactPair(final Relation _edge, final Artefact _dest) {
 		edge = _edge;
 		destination = _dest;
 	}
 
-	public final E getRelation() {
+	public final Relation getRelation() {
 		return edge;
 	}
 
-	public final N getArtefact() {
+	public final Artefact getArtefact() {
 		return destination;
 	}
 }

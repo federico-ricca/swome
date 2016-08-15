@@ -15,7 +15,7 @@
  ***************************************************************************/
 package org.swome.core;
 
-public interface RelationStringRepresentationFactory<E extends Relation> {
+public interface RelationStringRepresentationFactory {
 
-	public String createStringRepresentationFor(E _relation);
+	public String createStringRepresentationFor(Relation _relation);
 }

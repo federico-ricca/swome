@@ -26,19 +26,18 @@ import org.swome.core.Graph;
 import org.swome.core.Relation;
 import org.swome.core.RelationArtefactPair;
 
-public class SimpleGraph<N extends Artefact, E extends Relation> implements
-		Graph<N, E> {
+public class SimpleGraph implements Graph {
 
-	private Map<String, N> nodes = new HashMap<String, N>();
-	private Map<String, Set<RelationArtefactPair<E, N>>> outboundRelations = new HashMap<String, Set<RelationArtefactPair<E, N>>>();
+	private Map<String, Artefact> nodes = new HashMap<String, Artefact>();
+	private Map<String, Set<RelationArtefactPair>> outboundRelations = new HashMap<String, Set<RelationArtefactPair>>();
 
 	@Override
-	public Collection<N> artefacts() {
+	public Collection<Artefact> artefacts() {
 		return nodes.values();
 	}
 
 	@Override
-	public void addArtefact(final N _artefact) {
+	public void addArtefact(final Artefact _artefact) {
 		nodes.put(_artefact.getId(), _artefact);
 	}
 
@@ -48,36 +47,36 @@ public class SimpleGraph<N extends Artefact, E extends Relation> implements
 	}
 
 	@Override
-	public Collection<RelationArtefactPair<E, N>> getRelationsFor(String _id) {
+	public Collection<RelationArtefactPair> getRelationsFor(String _id) {
 		return outboundRelations.get(_id);
 	}
 
 	@Override
-	public N getArtefact(String _id) {
+	public Artefact getArtefact(String _id) {
 		return nodes.get(_id);
 	}
 
 	@Override
-	public void addRelation(E _relation, N _source, N _dest) {
+	public void addRelation(Relation _relation, Artefact _source, Artefact _dest) {
 		String _sourceId = _source.getId();
 
-		Set<RelationArtefactPair<E, N>> _relations = outboundRelations
-				.get(_sourceId);
+		Set<RelationArtefactPair> _relations = outboundRelations.get(_sourceId);
 
 		if (_relations == null) {
-			_relations = new HashSet<RelationArtefactPair<E, N>>();
+			_relations = new HashSet<RelationArtefactPair>();
 
 			outboundRelations.put(_sourceId, _relations);
 		}
 
-		RelationArtefactPair<E, N> _edgeEntry = new RelationArtefactPair<E, N>(
-				_relation, _dest);
+		RelationArtefactPair _edgeEntry = new RelationArtefactPair(_relation,
+				_dest);
 
 		_relations.add(_edgeEntry);
 	}
 
 	@Override
-	public void addDirectedRelation(E _relation, N _source, N _dest) {
+	public void addDirectedRelation(Relation _relation, Artefact _source,
+			Artefact _dest) {
 		this.addRelation(_relation, _source, _dest);
 	}
 }

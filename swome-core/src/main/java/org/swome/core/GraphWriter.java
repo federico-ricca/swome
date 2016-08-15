@@ -18,13 +18,11 @@ package org.swome.core;
 import java.io.File;
 import java.io.IOException;
 
-public interface GraphWriter<N extends Artefact, E extends Relation> {
+public interface GraphWriter {
 
-	public void write(
-			Graph<N, E> _graph,
-			File _file,
-			ArtefactStringRepresentationFactory<N> _artefactRepresentationFactory,
-			RelationStringRepresentationFactory<E> _relationRepresentationFactory)
+	public void write(Graph _graph, File _file,
+			ArtefactStringRepresentationFactory _artefactRepresentationFactory,
+			RelationStringRepresentationFactory _relationRepresentationFactory)
 			throws IOException;
 
 }

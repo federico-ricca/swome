@@ -17,6 +17,6 @@ package org.swome.core;
 
 public interface ArtefactFactory<T extends Artefact, R extends Artefact> {
 
-	public R createArtefact(T _artefactRepresentation);
+	public R createArtefact(T _artefactRepresentation, SingleArtefactProcessor<R> _processor);
 
 }

@@ -15,6 +15,15 @@
  ***************************************************************************/
 package org.swome.impl.groovy;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Stack;
+
 import org.codehaus.groovy.ast.AnnotatedNode;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassNode;
@@ -25,23 +34,130 @@ import org.codehaus.groovy.ast.ImportNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.ModuleNode;
 import org.codehaus.groovy.ast.PackageNode;
+import org.codehaus.groovy.ast.Parameter;
 import org.codehaus.groovy.ast.PropertyNode;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.AttributeExpression;
 import org.codehaus.groovy.ast.expr.CastExpression;
-import org.codehaus.groovy.ast.expr.ClassExpression;
+import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
 import org.codehaus.groovy.ast.expr.DeclarationExpression;
 import org.codehaus.groovy.ast.expr.FieldExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.StaticMethodCallExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
-import org.swome.util.ClassNameUtils;
+import org.codehaus.groovy.ast.stmt.BlockStatement;
+import org.codehaus.groovy.ast.stmt.CatchStatement;
+import org.codehaus.groovy.ast.stmt.ForStatement;
+import org.swome.core.ArtefactRegistry;
 
 public class PluginBasedGroovyCodeVisitor extends GroovyCodeVisitor {
+
+	private static final String THIS = "this";
+	private static final String SUPER = "super";
+
+	private class Context {
+		private Map<String, TypeDeclaration> locals = new HashMap<String, TypeDeclaration>();
+
+		public void add(String _varName, TypeDeclaration _typeDeclaration) {
+			locals.put(_varName, _typeDeclaration);
+		}
+
+		public TypeDeclaration get(String _varName) {
+			return locals.get(_varName);
+		}
+	}
+
+	private Stack<Context> contextStack = new Stack<PluginBasedGroovyCodeVisitor.Context>();
+	private Stack<MethodCallContext> methodCallContextStack = new Stack<MethodCallContext>();
+	private ArtefactRegistry<GroovyClassArtefact> artefactRegistry;
+
+	public PluginBasedGroovyCodeVisitor(
+			ArtefactRegistry<GroovyClassArtefact> registry) {
+		artefactRegistry = registry;
+	}
+
+	private List<String> flattenType(ClassNode node) {
+		List<String> typesList = new ArrayList<String>();
+
+		typesList.add(node.getText());
+
+		if (node.getGenericsTypes() != null) {
+			for (GenericsType gType : node.getGenericsTypes()) {
+				typesList.addAll(this.flattenType(gType.getType()));
+			}
+		}
+
+		return typesList;
+	}
+
+	private void pushContext() {
+		contextStack.push(new Context());
+	}
+
+	private Context popContext() {
+		return contextStack.pop();
+	}
+
+	private Context getContext() {
+		return contextStack.peek();
+	}
+
+	private MethodSignature buildMethodSignature(MethodNode _enclosingMethod) {
+		MethodSignature _methodSignature = new MethodSignature();
+
+		StringBuilder _builder = new StringBuilder();
+
+		if (_enclosingMethod.getParameters() != null) {
+			for (int i = 0; i < _enclosingMethod.getParameters().length - 1; i++) {
+				Parameter _p = _enclosingMethod.getParameters()[i];
+				_builder.append(_p.getType().getText());
+				_builder.append(" ");
+				_builder.append(_p.getName());
+				_builder.append(",");
+			}
+
+			if (_enclosingMethod.getParameters().length > 0) {
+				Parameter _p = _enclosingMethod.getParameters()[_enclosingMethod
+						.getParameters().length - 1];
+				_builder.append(_p.getType().getText());
+				_builder.append(" ");
+				_builder.append(_p.getName());
+			}
+		}
+
+		_methodSignature.setName(_enclosingMethod.getName());
+		_methodSignature.setReturnExpression(_enclosingMethod.getReturnType()
+				.getName());
+		_methodSignature.setParametersExpression(_builder.toString());
+
+		return _methodSignature;
+	}
+
+	private TypeDeclaration findVariableInScope(String _varName) {
+		ListIterator<Context> _iter = contextStack.listIterator(contextStack
+				.size());
+
+		while (_iter.hasPrevious()) {
+			Context _c = _iter.previous();
+
+			TypeDeclaration _t = _c.get(_varName);
+
+			if (_t != null) {
+				return _t;
+			}
+		}
+
+		return null;
+	}
 
 	@Override
 	public void visitClass(ClassNode node) {
 		getGroovyClassArtefact().setClassName(node.getNameWithoutPackage());
+
+		ClassReference _selfRef = ClassReference.resolved(
+				node.getPackageName(), node.getNameWithoutPackage());
+		getGroovyClassArtefact().addMember(THIS, new TypeDeclaration(_selfRef));
+		artefactRegistry.put(_selfRef.getFQCN(), this.getGroovyClassArtefact());
 
 		if (node.getGenericsTypes() != null) {
 			for (GenericsType _generics : node.getGenericsTypes()) {
@@ -50,12 +166,66 @@ public class PluginBasedGroovyCodeVisitor extends GroovyCodeVisitor {
 			}
 		}
 
+		ClassNode _superclass = node.getSuperClass();
+		ClassReference _superRef = this.getGroovyClassArtefact()
+				.resolveClassReference(_superclass.getNameWithoutPackage());
+		getGroovyClassArtefact().addMember(SUPER,
+				new TypeDeclaration(_superRef));
+
+		this.pushContext();
+
+		ClassNode _outerNode = node.getOuterClass();
+
+		if (_outerNode != null) {
+			// inner class
+			ClassReference _outerClassReference = ClassReference.resolved(
+					_outerNode.getPackageName(),
+					_outerNode.getNameWithoutPackage());
+
+			GroovyClassArtefact _parent = artefactRegistry
+					.findById(_outerClassReference.getFQCN());
+
+			Set<Entry<String, TypeDeclaration>> _members = _parent.getMembers();
+
+			// pass all members from parent to actual context, so the
+			// inner class have field visibility
+			for (Entry<String, TypeDeclaration> _m : _members) {
+				this.getContext().add(_m.getKey(), _m.getValue());
+			}
+
+			MethodNode _enclosingMethod = node.getEnclosingMethod();
+
+			if (_enclosingMethod != null) {
+				String _methodSignature = this.buildMethodSignature(
+						_enclosingMethod).toString();
+
+				MethodDefinition _methodDef = _parent
+						.getMethodBySignature(_methodSignature);
+				System.out.println(_methodSignature);
+				_members = _methodDef.getParameters();
+
+				// pass all members from parent to actual context, so the
+				// inner class have field visibility
+				for (Entry<String, TypeDeclaration> _m : _members) {
+					this.getContext().add(_m.getKey(), _m.getValue());
+				}
+			}
+		}
+
+		methodCallContextStack.push(this.getGroovyClassArtefact()
+				.getMethodCallContext());
+
 		super.visitClass(node);
+
+		methodCallContextStack.pop();
+
+		this.popContext();
 
 		ClassNode _superType = node.getSuperClass();
 
-		String _superClassName = getGroovyClassArtefact()
-				.resolveIdentifierClassName(_superType.getName());
+		String _superClassName = getGroovyClassArtefact().resolveClassName(
+				_superType.getName());
+
 		// String _superClassName = _superType.getName();
 		//
 		// if (_superClassName.indexOf(".") == -1) {
@@ -84,7 +254,9 @@ public class PluginBasedGroovyCodeVisitor extends GroovyCodeVisitor {
 	@Override
 	public void visitImports(ModuleNode node) {
 		for (ImportNode importNode : node.getImports()) {
-			getGroovyClassArtefact().addImport(importNode.getType().getName());
+			ClassReference _classReference = ClassReference.fromFQCN(importNode
+					.getClassName());
+			getGroovyClassArtefact().addImport(_classReference);
 		}
 		super.visitImports(node);
 	}
@@ -108,50 +280,119 @@ public class PluginBasedGroovyCodeVisitor extends GroovyCodeVisitor {
 		 * groovyClassArtefact.add(_generics.getType().getNameWithoutPackage());
 		 * } }
 		 */
+
+		String _varName = expression.getVariableExpression().getName();
+		ClassReference _classReference = getGroovyClassArtefact()
+				.resolveClassReference(
+						expression.getVariableExpression().getType().getName());
+		TypeDeclaration _typeDeclaration = new TypeDeclaration(_classReference);
+
+		this.getContext().add(_varName, _typeDeclaration);
+
 		super.visitDeclarationExpression(expression);
 	}
 
 	@Override
+	public void visitCatchStatement(CatchStatement statement) {
+		String _varName = statement.getVariable().getName();
+		ClassReference _classReference = getGroovyClassArtefact()
+				.resolveClassReference(
+						statement.getVariable().getType().getName());
+		TypeDeclaration _typeDeclaration = new TypeDeclaration(_classReference);
+
+		this.getContext().add(_varName, _typeDeclaration);
+
+		super.visitCatchStatement(statement);
+	}
+
+	@Override
+	public void visitForLoop(ForStatement forLoop) {
+		String _varName = forLoop.getVariable().getName();
+		ClassReference _classReference = getGroovyClassArtefact()
+				.resolveClassReference(
+						forLoop.getVariable().getType().getName());
+		TypeDeclaration _typeDeclaration = new TypeDeclaration(_classReference);
+
+		this.getContext().add(_varName, _typeDeclaration);
+
+		super.visitForLoop(forLoop);
+	}
+
+	@Override
 	public void visitConstructor(ConstructorNode node) {
-		// TODO Auto-generated method stub
+		MethodSignature _methodSignature = new MethodSignature();
+		_methodSignature.setName("<init>");
+		MethodDefinition _methodDef = new MethodDefinition(_methodSignature);
+
+		for (Parameter _param : node.getParameters()) {
+			String _varName = _param.getName();
+			ClassReference _classReference = getGroovyClassArtefact()
+					.resolveClassReference(_param.getType().getName());
+			TypeDeclaration _typeDeclaration = new TypeDeclaration(
+					_classReference);
+
+			this.getContext().add(_varName, _typeDeclaration);
+			_methodDef.addParameter(_varName, _typeDeclaration);
+		}
+
+		this.getGroovyClassArtefact().addMethod(_methodDef);
+
+		methodCallContextStack.push(_methodDef.getMethodCallContext());
+
 		super.visitConstructor(node);
+
+		methodCallContextStack.pop();
 	}
 
 	@Override
 	public void visitMethod(MethodNode node) {
-		/*
-		 * for (Parameter _parameter : node.getParameters()) { ClassNode _type =
-		 * _parameter.getType();
-		 * 
-		 * groovyClassArtefact.add(_type.getNameWithoutPackage());
-		 * 
-		 * if (_type.getGenericsTypes() != null) { for (GenericsType _generics :
-		 * _type.getGenericsTypes()) {
-		 * groovyClassArtefact.add(_generics.getType().getNameWithoutPackage());
-		 * } } }
-		 * 
-		 * ClassNode _type = node.getReturnType();
-		 * groovyClassArtefact.add(_type.getNameWithoutPackage());
-		 * 
-		 * if (_type.getGenericsTypes() != null) { for (GenericsType _generics :
-		 * _type.getGenericsTypes()) {
-		 * groovyClassArtefact.add(_generics.getType().getNameWithoutPackage());
-		 * } }
-		 */
+		MethodDefinition _methodDef = new MethodDefinition(
+				this.buildMethodSignature(node));
+
+		for (Parameter _param : node.getParameters()) {
+			String _varName = _param.getName();
+			ClassReference _classReference = getGroovyClassArtefact()
+					.resolveClassReference(_param.getType().getName());
+			TypeDeclaration _typeDeclaration = new TypeDeclaration(
+					_classReference);
+
+			this.getContext().add(_varName, _typeDeclaration);
+			_methodDef.addParameter(_varName, _typeDeclaration);
+		}
+
+		this.getGroovyClassArtefact().addMethod(_methodDef);
+
+		methodCallContextStack.push(_methodDef.getMethodCallContext());
+
 		super.visitMethod(node);
+
+		methodCallContextStack.pop();
+	}
+
+	@Override
+	public void visitBlockStatement(BlockStatement block) {
+		this.pushContext();
+
+		super.visitBlockStatement(block);
+
+		this.popContext();
 	}
 
 	@Override
 	public void visitField(FieldNode _fieldNode) {
-		String _className = _fieldNode.getType().getText();
-		String _classId = "";
+		List<ClassReference> _resolvedTypes = new ArrayList<ClassReference>();
 
-		if (ClassNameUtils.containsPackage(_className)) {
-			_classId = _className;
-		} else {
-			_classId = getGroovyClassArtefact().findImportByClass(_className);
+		for (String _type : this.flattenType(_fieldNode.getType())) {
+			ClassReference _classReference = getGroovyClassArtefact()
+					.resolveClassReference(_type);
+
+			_resolvedTypes.add(_classReference);
 		}
 
+		String _memberName = _fieldNode.getName();
+		TypeDeclaration _typeDeclaration = new TypeDeclaration(_resolvedTypes);
+
+		getGroovyClassArtefact().addMember(_memberName, _typeDeclaration);
 		/*
 		 * ClassNode _type = node.getType();
 		 * groovyClassArtefact.add(_type.getNameWithoutPackage());
@@ -188,27 +429,65 @@ public class PluginBasedGroovyCodeVisitor extends GroovyCodeVisitor {
 																// call on class
 																// member
 					String _varName = _varExp.getText();
-					String _memberClassName = "";
+					ClassReference _memberClassReference = null;
 
 					// check for class names (first letter is upper case)
-					if (ClassNameUtils.isClassName(_varName)) {
-						_memberClassName = getGroovyClassArtefact()
-								.findImportByClass(_varName);
+					if (ClassReference.isClassName(_varName)) {
+						_memberClassReference = getGroovyClassArtefact()
+								.resolveClassReference(_varName);
 					} else {
-						_memberClassName = getGroovyClassArtefact()
-								.getMemberClassName(_varName);
+						/*
+						 * TYPE ERASURE HERE, CAUSED BY
+						 * '.getMemberType(_varName).getTypes().get(0)'
+						 */
+						TypeDeclaration _varType = getGroovyClassArtefact()
+								.getMemberType(_varName);
+
+						if (_varType != null) {
+							_memberClassReference = _varType.getTypes().get(0);
+						} else {
+							// local variable
+							_varType = this.findVariableInScope(_varName);
+							if (_varType == null) {
+								System.out.println(this
+										.getGroovyClassArtefact().getId()
+										+ "; " + _varName);
+							}
+							_memberClassReference = _varType.getTypes().get(0);
+						}
 					}
 
-					MethodCallReference _methodCallReference = new MethodCallReference(
-							_memberClassName,
-							_methodCallExpression.getMethodAsString());
-					getGroovyClassArtefact().addMethodCallReference(
-							_methodCallReference);
+					MethodNode _method = _methodCallExpression
+							.getMethodTarget();
+
+					if (_method != null) {
+						MethodCallReference _methodCallReference = new MethodCallReference(
+								_memberClassReference,
+								this.buildMethodSignature(_method));
+						methodCallContextStack.peek().addMethodCallReference(
+								_methodCallReference);
+					}
 				}
 			}
 		}
 
 		super.visitMethodCallExpression(_methodCallExpression);
+	}
+
+	@Override
+	public void visitConstructorCallExpression(
+			ConstructorCallExpression _constructorCallExpression) {
+		MethodSignature _methodSignature = new MethodSignature();
+		_methodSignature.setName("<init>");
+		MethodCallReference _methodCallReference = new MethodCallReference(
+				getGroovyClassArtefact().resolveClassReference(
+						_constructorCallExpression.getType().getName()),
+				_methodSignature);
+
+		methodCallContextStack.peek().addMethodCallReference(
+				_methodCallReference);
+
+		super.visitConstructorCallExpression(_constructorCallExpression);
 	}
 
 	@Override
@@ -261,14 +540,6 @@ public class PluginBasedGroovyCodeVisitor extends GroovyCodeVisitor {
 	}
 
 	@Override
-	public void visitClassExpression(ClassExpression expression) {
-		/*
-		 * groovyClassArtefact.add(expression.getType().getNameWithoutPackage());
-		 */
-		super.visitClassExpression(expression);
-	}
-
-	@Override
 	public void visitPackage(PackageNode _node) {
 		super.visitPackage(_node);
 
@@ -281,6 +552,9 @@ public class PluginBasedGroovyCodeVisitor extends GroovyCodeVisitor {
 			}
 
 			getGroovyClassArtefact().setPackageName(_packageName);
+
+			getGroovyClassArtefact().getMemberType(THIS).getTypes().get(0)
+					.setPackageName(_packageName);
 		}
 	}
 

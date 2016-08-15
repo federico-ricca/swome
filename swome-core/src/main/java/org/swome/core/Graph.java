@@ -16,6 +16,7 @@
 package org.swome.core;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface Graph {
 
@@ -28,8 +29,9 @@ public interface Graph {
 
 	public void addArtefact(Artefact _artefact);
 
-	public Collection<RelationArtefactPair<Relation, Artefact>> getRelationsFor(
-			String _id);
+	public void addArtefacts(List<Artefact> _artefacts);
+
+	public Collection<RelationArtefactPair> getRelationsFor(String _id);
 
 	public boolean hasRelations(String _id);
 

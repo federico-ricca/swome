@@ -15,8 +15,8 @@
  ***************************************************************************/
 package org.swome.core;
 
-public interface ArtefactStringRepresentationFactory<T extends Artefact> {
+public interface ArtefactStringRepresentationFactory {
 
-	public String createStringRepresentationFor(T _anArtefact);
+	public String createStringRepresentationFor(Artefact _anArtefact);
 
 }

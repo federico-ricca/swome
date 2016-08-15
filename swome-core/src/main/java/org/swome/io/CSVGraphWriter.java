@@ -24,30 +24,27 @@ import org.swome.core.Artefact;
 import org.swome.core.ArtefactStringRepresentationFactory;
 import org.swome.core.Graph;
 import org.swome.core.GraphWriter;
-import org.swome.core.Relation;
 import org.swome.core.RelationArtefactPair;
 import org.swome.core.RelationStringRepresentationFactory;
 
-public class CSVGraphWriter<N extends Artefact, E extends Relation> implements
-		GraphWriter<N, E> {
+public class CSVGraphWriter implements GraphWriter {
+	public static final String ITEM_SEPARATOR = ";";
 
 	@Override
-	public void write(
-			Graph<N, E> _graph,
-			File _file,
-			ArtefactStringRepresentationFactory<N> _artefactRepresentationFactory,
-			RelationStringRepresentationFactory<E> _relationRepresentationFactory)
+	public void write(Graph _graph, File _file,
+			ArtefactStringRepresentationFactory _artefactRepresentationFactory,
+			RelationStringRepresentationFactory _relationRepresentationFactory)
 			throws IOException {
 		PrintStream _printStream = new PrintStream(_file);
 
-		Collection<N> _artefacts = _graph.artefacts();
+		Collection<Artefact> _artefacts = _graph.artefacts();
 
-		for (N _anArtefact : _artefacts) {
+		for (Artefact _anArtefact : _artefacts) {
 			final String _source = _artefactRepresentationFactory
 					.createStringRepresentationFor(_anArtefact);
 
 			if (_graph.hasRelations(_anArtefact.getId())) {
-				for (RelationArtefactPair<E, N> _relationDesc : _graph
+				for (RelationArtefactPair _relationDesc : _graph
 						.getRelationsFor(_anArtefact.getId())) {
 					String _target = _artefactRepresentationFactory
 							.createStringRepresentationFor(_relationDesc
@@ -56,13 +53,13 @@ public class CSVGraphWriter<N extends Artefact, E extends Relation> implements
 					String _relationRepresentation = "";
 
 					if (_relationRepresentationFactory != null) {
-						_relationRepresentation = ","
+						_relationRepresentation = ITEM_SEPARATOR
 								+ _relationRepresentationFactory
 										.createStringRepresentationFor(_relationDesc
 												.getRelation());
 					}
 
-					_printStream.println(_source + "," + _target
+					_printStream.println(_source + ITEM_SEPARATOR + _target
 							+ _relationRepresentation);
 				}
 			}

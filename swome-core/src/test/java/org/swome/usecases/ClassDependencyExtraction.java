@@ -16,66 +16,87 @@
 
 package org.swome.usecases;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 import org.junit.Test;
+import org.swome.core.Artefact;
+import org.swome.core.ArtefactStringRepresentationFactory;
 import org.swome.core.DefaultArtefactProcessor;
 import org.swome.core.FileArtefact;
+import org.swome.core.Relation;
+import org.swome.core.RelationStringRepresentationFactory;
 import org.swome.core.Structome;
 import org.swome.core.SystemRepresentation;
 import org.swome.extraction.SystemProcessor;
 import org.swome.impl.groovy.GroovyClassArtefact;
 import org.swome.impl.groovy.GroovyClassArtefactsProcessor;
-import org.swome.impl.titandb.InMemoryTitanGraphFactory;
+import org.swome.impl.groovy.MethodDefinition;
+import org.swome.impl.jung2.Jung2GraphFactory;
+import org.swome.io.CSVGraphWriter;
 
 public class ClassDependencyExtraction {
 
 	@Test
 	public void extractClassDependencyGraph() throws IOException {
 		String _path = "";
-		_path = "/Users/federico.ricca/b-projects/swome/swome-core/src/main/java";
-		//_path = "/Users/federico.ricca/work/portal-splitting/portal-web/modules/portal-core/src/groovy/de/kaufda/brochure/campaign";
+		_path = "/Users/federico.ricca/b-projects/swome/swome-core/src";
+		// _path =
+		// "/Users/federico.ricca/work/portal-splitting/portal-web/modules/portal-core/src/groovy/de/kaufda/brochure/campaign";
 
 		SystemProcessor _systemProcessor = new SystemProcessor();
-		Structome _structome = new Structome(new InMemoryTitanGraphFactory());
+		Structome _structome = new Structome(new Jung2GraphFactory());
 		SystemRepresentation _sysRep = new SystemRepresentation();
-		
-		DefaultArtefactProcessor<FileArtefact, GroovyClassArtefact> _artefactProcessor = new GroovyClassArtefactsProcessor();
-		
-		_systemProcessor.registerProcesor("class-dependency", ".*\\.java", _artefactProcessor);
 
-		_artefactProcessor.addStep((artefact, graph) -> {
-			System.out.println(artefact);
-			return artefact;
-		});
-		
+		DefaultArtefactProcessor<FileArtefact, GroovyClassArtefact> _artefactProcessor = new GroovyClassArtefactsProcessor();
+
+		_systemProcessor.registerProcesor("class-dependency", ".*\\.java",
+				_artefactProcessor);
+
+		_artefactProcessor
+				.addStep((_artefact, _graph) -> {
+					GroovyClassArtefact _groovyClassArtefact = (GroovyClassArtefact) _artefact;
+
+					for (MethodDefinition _methodDef : _groovyClassArtefact
+							.getMethods()) {
+						Artefact _methodArtefact = new Artefact();
+
+						_methodArtefact.setId(_groovyClassArtefact.getId()
+								+ ":" + _methodDef.getSignature());
+System.out.println(">> " + _groovyClassArtefact.getId() +":"+_methodDef.getSignature());
+						_graph.addArtefact(_methodArtefact);
+						_graph.addDirectedRelation(new Relation("member-method"), _artefact,
+								_methodArtefact);
+
+					}
+					return Collections.emptyList();
+				});
+
 		_systemProcessor.processFolder(_path, _sysRep, _structome);
-/*
-		CSVGraphWriter<GroovyClassArtefact, ClassReferenceRelation> _graphWriter = new CSVGraphWriter<GroovyClassArtefact, ClassReferenceRelation>();
+
+		CSVGraphWriter _graphWriter = new CSVGraphWriter();
 
 		File _file = new File("dependency-graph.csv");
 
-		ArtefactStringRepresentationFactory<GroovyClassArtefact> _simpleRepresentationFactory = new ArtefactStringRepresentationFactory<GroovyClassArtefact>() {
+		ArtefactStringRepresentationFactory _simpleRepresentationFactory = new ArtefactStringRepresentationFactory() {
 
 			@Override
-			public String createStringRepresentationFor(GroovyClassArtefact _anArtefact) {
+			public String createStringRepresentationFor(Artefact _anArtefact) {
 				return _anArtefact.getId();
 			}
 		};
 
-		RelationStringRepresentationFactory<ClassReferenceRelation> _relationRepresentationFactory = new RelationStringRepresentationFactory<ClassReferenceRelation>() {
-
+		RelationStringRepresentationFactory _relationRepresentationFactory = new RelationStringRepresentationFactory() {
 			@Override
-			public String createStringRepresentationFor(ClassReferenceRelation _relation) {
+			public String createStringRepresentationFor(Relation _relation) {
 				return _relation.toString();
 			}
 
 		};
 
-		_graphWriter.write(
-				(Graph<GroovyClassArtefact, ClassReferenceRelation>) _structome.getGraph("class-dependency"),
-				_file, _simpleRepresentationFactory, _relationRepresentationFactory);
-				*/
+		_graphWriter.write(_structome.getGraph(), _file,
+				_simpleRepresentationFactory, _relationRepresentationFactory);
 
 	}
 }

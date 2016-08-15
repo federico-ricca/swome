@@ -6,10 +6,10 @@ import java.util.List;
 
 public abstract class DefaultArtefactProcessor<T extends Artefact, R extends Artefact>
 		implements ArtefactProcessor<T> {
-	private List<ArtefactProcessorStep<Artefact>> steps = new ArrayList<ArtefactProcessorStep<Artefact>>();
+	private List<ArtefactProcessorStep<Artefact>> artefactSteps = new ArrayList<ArtefactProcessorStep<Artefact>>();
 
 	public void addStep(ArtefactProcessorStep<Artefact> _step) {
-		steps.add(_step);
+		artefactSteps.add(_step);
 	}
 
 	@Override
@@ -18,23 +18,37 @@ public abstract class DefaultArtefactProcessor<T extends Artefact, R extends Art
 
 		for (T _artefact : _artefacts) {
 			try {
-				R _resultArtefact = _factory.createArtefact(_artefact);
-				this.mainStep(_resultArtefact, _graph);
+				_factory.createArtefact(
+						_artefact,
+						(_resultArtefact) -> {
+							List<Artefact> results = this.mainStep(
+									_resultArtefact, _graph);
 
-				this.performAdditionalSteps(_resultArtefact, _graph);
+							_graph.addArtefacts(results);
+
+							this.performAdditionalArtefactSteps(
+									_resultArtefact, _graph);
+						});
+
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 			}
 		}
+
+		this.traverseGraph(_graph);
 	}
 
-	public void performAdditionalSteps(R _artefact, Graph _graph) {
-		for (ArtefactProcessorStep<Artefact> _step : steps) {
-			_step.perform(_artefact, _graph);
+	public void performAdditionalArtefactSteps(R _artefact, Graph _graph) {
+		for (ArtefactProcessorStep<Artefact> _step : artefactSteps) {
+			List<Artefact> results = _step.perform(_artefact, _graph);
+
+			_graph.addArtefacts(results);
 		}
 	}
 
-	public abstract void mainStep(R _artefact, Graph _graph);
+	public abstract List<Artefact> mainStep(R _artefact, Graph _graph);
 
 	public abstract ArtefactFactory<T, R> getArtefactFactory();
+
+	public abstract void traverseGraph(Graph _graph);
 }

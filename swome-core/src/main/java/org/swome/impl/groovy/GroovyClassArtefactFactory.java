@@ -29,6 +29,7 @@ import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.swome.core.ArtefactFactory;
 import org.swome.core.FileArtefact;
+import org.swome.core.SingleArtefactProcessor;
 
 public class GroovyClassArtefactFactory implements
 		ArtefactFactory<FileArtefact, GroovyClassArtefact> {
@@ -39,7 +40,7 @@ public class GroovyClassArtefactFactory implements
 	}
 
 	@Override
-	public GroovyClassArtefact createArtefact(FileArtefact _groovyFile) {
+	public GroovyClassArtefact createArtefact(FileArtefact _groovyFile, SingleArtefactProcessor<GroovyClassArtefact> _artefactProcessor) {
 		CompilerConfiguration _configuration = new CompilerConfiguration();
 		CodeSigner[] certs = null;
 		CodeSource _security = new CodeSource(null, (CodeSigner[]) certs);
@@ -58,6 +59,8 @@ public class GroovyClassArtefactFactory implements
 							throws CompilationFailedException {
 						groovyCodeVisitor.begin(source);
 						groovyCodeVisitor.visitClass(classNode);
+						
+						_artefactProcessor.process(groovyCodeVisitor.getGroovyClassArtefact());
 					}
 				}, Phases.CONVERSION);
 

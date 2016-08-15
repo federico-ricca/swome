@@ -16,19 +16,24 @@
 package org.swome.impl.groovy;
 
 public class MethodCallReference {
-	private String targetClassId;
-	private String targetMethod;
+	private ClassReference targetClassReference;
+	private MethodSignature targetMethod;
 
-	public MethodCallReference(String _targetClassId, String _targetMethod) {
-		targetClassId = _targetClassId;
+	public MethodCallReference(ClassReference _targetClassReference,
+			MethodSignature _targetMethod) {
+		targetClassReference = _targetClassReference;
 		targetMethod = _targetMethod;
 	}
 
-	public String getTargetClassId() {
-		return targetClassId;
+	public MethodSignature getTargetMethod() {
+		return targetMethod;
 	}
 
-	public String getTargetMethod() {
-		return targetMethod;
+	public ClassReference getTargetClassReference() {
+		return targetClassReference;
+	}
+
+	public void setTargetClassReference(ClassReference targetClassReference) {
+		this.targetClassReference = targetClassReference;
 	}
 }

@@ -15,29 +15,40 @@
  ***************************************************************************/
 package org.swome.impl.groovy;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.swome.core.Artefact;
 import org.swome.util.ClassNameUtils;
 
 public class GroovyClassArtefact extends Artefact {
+	private static Map<String, String> javaLangImports = JavaLangDef
+			.getImports();
 	private String className;
 	private String packageName;
 	private String superClassName;
 	private String superClassPackageName;
-	private Map<String, String> classMemberTypes = new HashMap<String, String>();
-	private Collection<MethodCallReference> methodCallReferences = new ArrayList<MethodCallReference>();
-	private Map<String, String> imports = new HashMap<String, String>();
+	private Set<TypeDeclaration> referencedTypeDeclarations = new HashSet<TypeDeclaration>();
+	private Map<String, TypeDeclaration> classMemberTypes = new HashMap<String, TypeDeclaration>();
+	private Map<String, ClassReference> imports = new HashMap<String, ClassReference>();
+	private Map<String, MethodDefinition> methods = new HashMap<String, MethodDefinition>();
+	private MethodCallContext methodCallContext;
 
 	public GroovyClassArtefact() {
+		this.setMethodCallContext(new MethodCallContext());
 	}
 
 	@Override
 	public final String getId() {
-		return packageName + "." + className;
+		if (packageName != null) {
+			return packageName + "." + className;
+		}
+
+		return className;
 	}
 
 	public final void setClassName(String _nameWithoutPackage) {
@@ -78,18 +89,8 @@ public class GroovyClassArtefact extends Artefact {
 
 	}
 
-	public final void addImport(String _import) {
-		final int _iIndex = _import.lastIndexOf(".");
-
-		if (_iIndex == -1) {
-			return;
-		}
-
-		final String _pkgName = _import.substring(0, _iIndex);
-		final String _className = _import.substring(_iIndex + 1,
-				_import.length());
-
-		imports.put(_className, _pkgName + "." + _className);
+	public final void addImport(ClassReference _import) {
+		imports.put(_import.getClassName(), _import);
 	}
 
 	public final void addAnnotation(String _annotation) {
@@ -113,8 +114,19 @@ public class GroovyClassArtefact extends Artefact {
 		return packageName;
 	}
 
-	public final String findImportByClass(String _className) {
-		return imports.get(_className);
+	public final String fqcnByClassName(String _className) {
+		// lookup java.lang package
+		String _id = javaLangImports.get(_className);
+
+		if (_id == null) {
+			ClassReference _classReference = imports.get(_className);
+
+			if (_classReference != null) {
+				_id = _classReference.getFQCN();
+			}
+		}
+
+		return _id;
 	}
 
 	public final String getSuperClassId() {
@@ -130,33 +142,79 @@ public class GroovyClassArtefact extends Artefact {
 		return this.getId();
 	}
 
-	public final void addMethodCallReference(
-			MethodCallReference _methodCallReference) {
-		methodCallReferences.add(_methodCallReference);
+	public final void addMember(String _memberName,
+			TypeDeclaration _typeDeclaration) {
+		classMemberTypes.put(_memberName, _typeDeclaration);
+		referencedTypeDeclarations.add(_typeDeclaration);
 	}
 
-	public final Collection<MethodCallReference> getMethodCallReferences() {
-		return methodCallReferences;
-	}
-
-	public final void addMemberClassName(String _memberName, String _className) {
-		classMemberTypes.put(_memberName, _className);
-	}
-
-	public final String getMemberClassName(String _varName) {
+	public final TypeDeclaration getMemberType(String _varName) {
 		return classMemberTypes.get(_varName);
 	}
 
-	public final String resolveIdentifierClassName(String _identifier) {
-		if (ClassNameUtils.containsPackage(_identifier)) {
-			// fqcn
-			return _identifier;
-		} else if (ClassNameUtils.isClassName(_identifier)) {
-			String _fqcn = this.findImportByClass(_identifier);
+	public final String resolveClassName(String _identifier) {
+		String _fqcn = null;
 
-			return _fqcn;
+		if (ClassReference.classNameContainsPackage(_identifier)) {
+			// fqcn
+			_fqcn = _identifier;
+		} else if (ClassReference.isClassName(_identifier)) {
+			_fqcn = this.fqcnByClassName(_identifier);
 		}
 
-		return this.getMemberClassName(_identifier);
+		return _fqcn;
+	}
+
+	/*
+	 * public final String resolveIdentifierClassname(String _identifier) { if
+	 * (ClassNameUtils.containsPackage(_identifier)) { // fqcn return
+	 * _identifier; } else if (ClassNameUtils.isClassName(_identifier)) { String
+	 * _fqcn = this.findImportByClass(_identifier);
+	 * 
+	 * return _fqcn; }
+	 * 
+	 * return this.getMemberType(_identifier).get; }
+	 */
+	public ClassReference resolveClassReference(String _className) {
+		ClassReference _classReference = null;
+
+		if (ClassReference.classNameContainsPackage(_className)) {
+			_classReference = ClassReference.fromFQCN(_className);
+		} else {
+			String _fqcn = this.fqcnByClassName(_className);
+
+			if (_fqcn != null) {
+				_classReference = ClassReference.fromFQCN(_fqcn);
+			} else {
+				_classReference = ClassReference.unresolved(_className);
+				_classReference.setReferencedFrom(this.getPackageName());
+			}
+		}
+
+		return _classReference;
+	}
+
+	public Set<Entry<String, TypeDeclaration>> getMembers() {
+		return classMemberTypes.entrySet();
+	}
+
+	public Collection<MethodDefinition> getMethods() {
+		return methods.values();
+	}
+
+	public MethodDefinition getMethodBySignature(String _methodSignature) {
+		return methods.get(_methodSignature);
+	}
+
+	public void addMethod(MethodDefinition _methodDef) {
+		methods.put(_methodDef.getSignature().toString(), _methodDef);
+	}
+
+	public MethodCallContext getMethodCallContext() {
+		return methodCallContext;
+	}
+
+	public void setMethodCallContext(MethodCallContext methodCallContext) {
+		this.methodCallContext = methodCallContext;
 	}
 }
