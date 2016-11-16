@@ -13,28 +13,28 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  ***************************************************************************/
-package org.swome.core;
+package org.swome.impl.java.groovyparser;
 
-import java.util.Collection;
-import java.util.List;
+import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
+import org.codehaus.groovy.control.SourceUnit;
 
-public interface Graph {
+public class GroovyCodeVisitor extends ClassCodeVisitorSupport {
+	private SourceUnit sourceUnit;
+	private GroovyClassArtefact groovyClassArtefact;
 
-	public Collection<Artefact> artefacts();
+	public final void begin(SourceUnit _sourceUnit) {
+		sourceUnit = _sourceUnit;
+		System.out.println("creating artefact for: " + _sourceUnit.getName());
+		groovyClassArtefact = new GroovyClassArtefact();
+	}
 
-	public void addRelation(Relation _relation, Artefact _source, Artefact _dest);
+	@Override
+	protected final SourceUnit getSourceUnit() {
+		return sourceUnit;
+	}
 
-	public void addDirectedRelation(Relation _relation, Artefact _source,
-			Artefact _dest);
-
-	public void addArtefact(Artefact _artefact);
-
-	public void addArtefacts(List<Artefact> _artefacts);
-
-	public Collection<RelationArtefactPair> getRelationsFor(String _id);
-
-	public boolean hasRelations(String _id);
-
-	public Artefact getArtefact(String _id);
+	public final GroovyClassArtefact getGroovyClassArtefact() {
+		return groovyClassArtefact;
+	}
 
 }

@@ -1,4 +1,4 @@
-package org.swome.impl.groovy;
+package org.swome.impl.java.groovyparser;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -13,6 +13,8 @@ import org.swome.core.DefaultArtefactProcessor;
 import org.swome.core.FileArtefact;
 import org.swome.core.Graph;
 import org.swome.core.Relation;
+import org.swome.impl.java.MethodCallReference;
+import org.swome.impl.java.MethodDefinition;
 
 public class GroovyClassArtefactsProcessor extends
 		DefaultArtefactProcessor<FileArtefact, GroovyClassArtefact> {

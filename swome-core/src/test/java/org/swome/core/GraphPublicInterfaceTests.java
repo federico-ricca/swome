@@ -20,10 +20,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 
 import org.junit.Test;
-import org.swome.impl.SimpleArtefact;
-import org.swome.impl.SimpleGraph;
-import org.swome.impl.SimpleRelation;
-import org.swome.impl.SimpleRelationFactory;
 
 public class GraphPublicInterfaceTests {
 
@@ -37,26 +33,27 @@ public class GraphPublicInterfaceTests {
 	 */
 	@Test
 	public void testLoadGraph() throws IOException {
-		GraphLoader<SimpleArtefact, SimpleRelation, String> _graphLoader = new GraphLoader<SimpleArtefact, SimpleRelation, String>() {
+		GraphLoader<Artefact, Relation, String> _graphLoader = new GraphLoader<Artefact, Relation, String>() {
+
 			@Override
-			public void loadInto(
-					Graph<SimpleArtefact, SimpleRelation> graph,
-					ArtefactFactory<SimpleArtefact, String> _factory,
-					RelationFactory<SimpleRelation, SimpleArtefact> _relationFactory)
+			public void loadInto(Graph graph,
+					ArtefactFactory<Artefact, Artefact> _factory,
+					RelationFactory<Relation, Artefact> _relationFactory)
 					throws IOException {
-				SimpleArtefact _A = _factory.createArtefact("A");
+				Artefact _A = _factory.createArtefact("A", null);
+				_factory.createArtefact(_artefactRepresentation, _processor)
 				graph.addArtefact(_A);
 
-				SimpleArtefact _B = _factory.createArtefact("B");
+				Artefact _B = _factory.createArtefact("B");
 				graph.addArtefact(_B);
 
-				SimpleArtefact _C = _factory.createArtefact("C");
+				Artefact _C = _factory.createArtefact("C");
 				graph.addArtefact(_C);
 
-				SimpleArtefact _D = _factory.createArtefact("D");
+				Artefact _D = _factory.createArtefact("D");
 				graph.addArtefact(_D);
 
-				SimpleArtefact _E = _factory.createArtefact("E");
+				Artefact _E = _factory.createArtefact("E");
 				graph.addArtefact(_E);
 
 				graph.addRelation(_relationFactory.createRelation(_A, _B), _A,
@@ -70,17 +67,17 @@ public class GraphPublicInterfaceTests {
 			}
 		};
 
-		ArtefactFactory<SimpleArtefact, String> _factory = new ArtefactFactory<SimpleArtefact, String>() {
+		ArtefactFactory<Artefact, String> _factory = new ArtefactFactory<Artefact, String>() {
 
 			@Override
-			public SimpleArtefact createArtefact(String _artefactRepresentation) {
-				return new SimpleArtefact(_artefactRepresentation);
+			public Artefact createArtefact(String _artefactRepresentation) {
+				return new Artefact(_artefactRepresentation);
 			}
 		};
 
-		Graph<SimpleArtefact, SimpleRelation> graph = new SimpleGraph<SimpleArtefact, SimpleRelation>();
+		Graph graph = new Graph();
 
-		_graphLoader.loadInto(graph, _factory, new SimpleRelationFactory());
+		_graphLoader.loadInto(graph, _factory, new RelationFactory());
 
 		assertEquals(5, graph.artefacts().size());
 		assertEquals(2, graph.getRelationsFor("A").size());

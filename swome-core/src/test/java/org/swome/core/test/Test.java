@@ -1,7 +1,7 @@
 package org.swome.core.test;
 
-import org.swome.impl.groovy.GroovyClassArtefactFactory;
-import org.swome.impl.groovy.GroovyCodeVisitor;
+import org.swome.impl.java.groovyparser.GroovyClassArtefactFactory;
+import org.swome.impl.java.groovyparser.GroovyCodeVisitor;
 
 public class Test {
 	public void run() {

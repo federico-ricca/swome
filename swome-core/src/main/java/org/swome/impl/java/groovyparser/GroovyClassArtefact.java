@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  ***************************************************************************/
-package org.swome.impl.groovy;
+package org.swome.impl.java.groovyparser;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,6 +23,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.swome.core.Artefact;
+import org.swome.impl.java.ClassReference;
+import org.swome.impl.java.JavaLangDef;
+import org.swome.impl.java.MethodCallContext;
+import org.swome.impl.java.MethodDefinition;
+import org.swome.impl.java.TypeDeclaration;
 import org.swome.util.ClassNameUtils;
 
 public class GroovyClassArtefact extends Artefact {

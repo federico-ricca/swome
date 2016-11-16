@@ -16,12 +16,25 @@
 package org.swome.core;
 
 import java.util.Collection;
+import java.util.List;
 
-public interface GraphBuilder<N extends Artefact, E extends Relation, S> {
+public interface SWGraph {
 
-	public Graph<N, E> buildFrom(S _source, ArtefactFactory<N, S> _factory);
+	public Collection<Artefact> artefacts();
 
-	public Graph<N, E> buildFrom(Collection<S> _sources,
-			ArtefactFactory<N, S> _factory, GraphFactory<N, E> _graphFactory);
+	public void addRelation(Relation _relation, Artefact _source, Artefact _dest);
+
+	public void addDirectedRelation(Relation _relation, Artefact _source,
+			Artefact _dest);
+
+	public void addArtefact(Artefact _artefact);
+
+	public void addArtefacts(List<Artefact> _artefacts);
+
+	public Collection<RelationArtefactPair> getRelationsFor(String _id);
+
+	public boolean hasRelations(String _id);
+
+	public Artefact getArtefact(String _id);
 
 }

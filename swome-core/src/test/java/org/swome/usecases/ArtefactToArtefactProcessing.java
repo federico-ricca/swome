@@ -1,5 +1,5 @@
 /*************************************************************************** 
-   Copyright 2015 Federico Ricca
+   Copyright 2016 Federico Ricca
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,28 +15,17 @@
  ***************************************************************************/
 package org.swome.usecases;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Vector;
-
-import org.junit.Before;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.junit.Assert;
 import org.junit.Test;
-import org.swome.core.ArtefactFactory;
-import org.swome.core.ArtefactProcessor;
-import org.swome.core.Graph;
-import org.swome.core.GraphBuilder;
 import org.swome.core.GraphFactory;
-import org.swome.core.RelationArtefactPair;
-import org.swome.helpers.SourceArtefact;
-import org.swome.impl.SimpleGraph;
-import org.swome.impl.SimpleRelation;
-import org.swome.usecases.helpers.SourceArtefactRepresentation;
-import org.swome.usecases.helpers.TargetArtefact;
+import org.swome.core.Pipeline;
+import org.swome.extraction.ResourceProcessor;
+import org.swome.impl.titandb.InMemoryTitanGraphFactory;
 
 public class ArtefactToArtefactProcessing {
+	/*
+
 	Collection<SourceArtefact> _artefacts = new ArrayList<SourceArtefact>();
 
 	@Before
@@ -49,7 +38,6 @@ public class ArtefactToArtefactProcessing {
 		_artefacts.add(new SourceArtefact("3", 103));
 		_artefacts.add(_s4);
 	}
-
 	@Test
 	public void artefactToRepresentationToArtefact() {
 		ArtefactProcessor<SourceArtefact, SourceArtefactRepresentation> _processor = new ArtefactProcessor<SourceArtefact, SourceArtefactRepresentation>() {
@@ -169,5 +157,22 @@ public class ArtefactToArtefactProcessing {
 		assertEquals(5, _graph.artefacts().size());
 		assertEquals(1, _relations.size());
 		assertEquals("4", _relations.get(0).getArtefact().getId());
+	}*/
+	
+	@Test
+	public void resourcesToGraph() {
+		GraphFactory graphFactory = new InMemoryTitanGraphFactory();
+		
+		ResourceProcessor processor = new ResourceProcessor() {
+			
+		};
+		
+		Pipeline p = new Pipeline(graphFactory);
+		
+		p.run(processor);
+		
+		Graph g = p.getGraph();
+		
+		Assert.assertNotNull(g);
 	}
 }

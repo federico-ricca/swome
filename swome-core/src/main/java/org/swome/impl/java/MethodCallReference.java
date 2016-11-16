@@ -13,28 +13,27 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  ***************************************************************************/
-package org.swome.impl.groovy;
+package org.swome.impl.java;
 
-import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
-import org.codehaus.groovy.control.SourceUnit;
+public class MethodCallReference {
+	private ClassReference targetClassReference;
+	private MethodSignature targetMethod;
 
-public class GroovyCodeVisitor extends ClassCodeVisitorSupport {
-	private SourceUnit sourceUnit;
-	private GroovyClassArtefact groovyClassArtefact;
-
-	public final void begin(SourceUnit _sourceUnit) {
-		sourceUnit = _sourceUnit;
-		System.out.println("creating artefact for: " + _sourceUnit.getName());
-		groovyClassArtefact = new GroovyClassArtefact();
+	public MethodCallReference(ClassReference _targetClassReference,
+			MethodSignature _targetMethod) {
+		targetClassReference = _targetClassReference;
+		targetMethod = _targetMethod;
 	}
 
-	@Override
-	protected final SourceUnit getSourceUnit() {
-		return sourceUnit;
+	public MethodSignature getTargetMethod() {
+		return targetMethod;
 	}
 
-	public final GroovyClassArtefact getGroovyClassArtefact() {
-		return groovyClassArtefact;
+	public ClassReference getTargetClassReference() {
+		return targetClassReference;
 	}
 
+	public void setTargetClassReference(ClassReference targetClassReference) {
+		this.targetClassReference = targetClassReference;
+	}
 }

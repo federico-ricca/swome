@@ -1,4 +1,4 @@
-package org.swome.impl.groovy;
+package org.swome.impl.java;
 
 public class MethodSignature {
 	public static final String CONSTRUCTOR = "<init>";

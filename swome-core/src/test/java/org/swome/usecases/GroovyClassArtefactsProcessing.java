@@ -37,9 +37,9 @@ import org.swome.core.RelationArtefactPair;
 import org.swome.extraction.GroovyClassDependencyGraph;
 import org.swome.impl.groovy.ClassReferenceRelation;
 import org.swome.impl.groovy.GroovyClassArtefact;
-import org.swome.impl.groovy.GroovyClassArtefactFactory;
 import org.swome.impl.groovy.GroovyFileArtefact;
-import org.swome.impl.groovy.PluginBasedGroovyCodeVisitor;
+import org.swome.impl.java.groovyparser.GroovyClassArtefactFactory;
+import org.swome.impl.java.groovyparser.PluginBasedGroovyCodeVisitor;
 
 public class GroovyClassArtefactsProcessing {
 	static String[] sourceCodeA = { 

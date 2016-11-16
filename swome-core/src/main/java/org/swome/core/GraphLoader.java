@@ -19,7 +19,7 @@ import java.io.IOException;
 
 public interface GraphLoader<N extends Artefact, E extends Relation, S> {
 
-	public void loadInto(Graph<N, E> graph, ArtefactFactory<N, S> _factory,
+	public void loadInto(Graph graph, ArtefactFactory<Artefact, Artefact> _factory,
 			final RelationFactory<E, N> _relationFactory) throws IOException;
 
 }

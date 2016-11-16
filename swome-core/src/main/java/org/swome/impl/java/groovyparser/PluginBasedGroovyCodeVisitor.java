@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  ***************************************************************************/
-package org.swome.impl.groovy;
+package org.swome.impl.java.groovyparser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +49,12 @@ import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.CatchStatement;
 import org.codehaus.groovy.ast.stmt.ForStatement;
 import org.swome.core.ArtefactRegistry;
+import org.swome.impl.java.ClassReference;
+import org.swome.impl.java.MethodCallContext;
+import org.swome.impl.java.MethodCallReference;
+import org.swome.impl.java.MethodDefinition;
+import org.swome.impl.java.MethodSignature;
+import org.swome.impl.java.TypeDeclaration;
 
 public class PluginBasedGroovyCodeVisitor extends GroovyCodeVisitor {
 

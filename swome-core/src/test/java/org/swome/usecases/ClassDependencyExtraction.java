@@ -30,9 +30,9 @@ import org.swome.core.RelationStringRepresentationFactory;
 import org.swome.core.Structome;
 import org.swome.core.SystemRepresentation;
 import org.swome.extraction.SystemProcessor;
-import org.swome.impl.groovy.GroovyClassArtefact;
-import org.swome.impl.groovy.GroovyClassArtefactsProcessor;
-import org.swome.impl.groovy.MethodDefinition;
+import org.swome.impl.java.MethodDefinition;
+import org.swome.impl.java.groovyparser.GroovyClassArtefact;
+import org.swome.impl.java.javaparser.JavaParserClassArtefactsProcessor;
 import org.swome.impl.jung2.Jung2GraphFactory;
 import org.swome.io.CSVGraphWriter;
 
@@ -49,7 +49,8 @@ public class ClassDependencyExtraction {
 		Structome _structome = new Structome(new Jung2GraphFactory());
 		SystemRepresentation _sysRep = new SystemRepresentation();
 
-		DefaultArtefactProcessor<FileArtefact, GroovyClassArtefact> _artefactProcessor = new GroovyClassArtefactsProcessor();
+//		DefaultArtefactProcessor<FileArtefact, GroovyClassArtefact> _artefactProcessor = new GroovyClassArtefactsProcessor();
+		DefaultArtefactProcessor<FileArtefact, GroovyClassArtefact> _artefactProcessor = new JavaParserClassArtefactsProcessor();
 
 		_systemProcessor.registerProcesor("class-dependency", ".*\\.java",
 				_artefactProcessor);
