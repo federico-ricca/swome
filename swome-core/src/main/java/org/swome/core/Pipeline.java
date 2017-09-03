@@ -9,11 +9,15 @@ public class Pipeline {
 
 	public Pipeline(GraphFactory graphFactory) {
 		this.graphFactory = graphFactory;
+		this.initGraph();
 	}
 
 	public void run(ResourceProcessor processor) {
-		this.initGraph();
-
+		for (Resource r : processor) {
+			System.out.println(r.getName());
+			System.out.println(r.getProperties());
+			
+		}
 	}
 
 	private void initGraph() {

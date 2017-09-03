@@ -17,6 +17,8 @@ package org.swome.core;
 
 import java.io.IOException;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
+
 public interface GraphLoader<N extends Artefact, E extends Relation, S> {
 
 	public void loadInto(Graph graph, ArtefactFactory<Artefact, Artefact> _factory,

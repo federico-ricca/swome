@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.swome.core.Artefact;
 import org.swome.core.ArtefactStringRepresentationFactory;
-import org.swome.core.Graph;
 import org.swome.core.GraphWriter;
 import org.swome.core.RelationArtefactPair;
 import org.swome.core.RelationStringRepresentationFactory;
@@ -36,7 +36,7 @@ public class CSVGraphWriter implements GraphWriter {
 			RelationStringRepresentationFactory _relationRepresentationFactory)
 			throws IOException {
 		PrintStream _printStream = new PrintStream(_file);
-
+/*
 		Collection<Artefact> _artefacts = _graph.artefacts();
 
 		for (Artefact _anArtefact : _artefacts) {
@@ -64,7 +64,7 @@ public class CSVGraphWriter implements GraphWriter {
 				}
 			}
 		}
-
+*/
 		_printStream.close();
 	}
 

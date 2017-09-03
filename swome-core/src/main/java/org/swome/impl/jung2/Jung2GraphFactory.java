@@ -1,6 +1,6 @@
 package org.swome.impl.jung2;
 
-import org.swome.core.Graph;
+import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.swome.core.GraphFactory;
 
 public class Jung2GraphFactory implements GraphFactory {

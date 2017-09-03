@@ -1,5 +1,7 @@
 package org.swome.extraction;
 
-public interface ResourceProcessor {
+import org.swome.core.Resource;
 
+public interface ResourceProcessor extends Iterable<Resource> {
+	
 }

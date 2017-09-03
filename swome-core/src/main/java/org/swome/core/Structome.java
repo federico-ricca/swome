@@ -15,6 +15,8 @@
  ***************************************************************************/
 package org.swome.core;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
+
 public class Structome {
 	private Graph graph;
 	private GraphFactory graphFactory;

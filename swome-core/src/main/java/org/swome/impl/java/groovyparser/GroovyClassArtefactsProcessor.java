@@ -6,12 +6,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.swome.core.Artefact;
 import org.swome.core.ArtefactFactory;
 import org.swome.core.ArtefactRegistry;
 import org.swome.core.DefaultArtefactProcessor;
 import org.swome.core.FileArtefact;
-import org.swome.core.Graph;
 import org.swome.core.Relation;
 import org.swome.impl.java.MethodCallReference;
 import org.swome.impl.java.MethodDefinition;
@@ -22,7 +22,8 @@ public class GroovyClassArtefactsProcessor extends
 
 	@Override
 	public List<Artefact> mainStep(GroovyClassArtefact _artefact, Graph _graph) {
-		_graph.addArtefact(_artefact);
+		// TODO: replace by graph.add (vertex)
+		//_graph.addArtefact(_artefact);
 
 		return Collections.emptyList();
 	}
@@ -34,7 +35,7 @@ public class GroovyClassArtefactsProcessor extends
 	}
 
 	@Override
-	public void traverseGraph(Graph _graph) {
+	public void traverseGraph(Graph _graph) {/*
 		for (Artefact _artefact : _graph.artefacts()) {
 			if (_artefact instanceof GroovyClassArtefact) {
 				GroovyClassArtefact _groovyClassArtefact = (GroovyClassArtefact) _artefact;
@@ -93,7 +94,7 @@ public class GroovyClassArtefactsProcessor extends
 				}
 			}
 
-		}
+		}*/
 	}
 
 }

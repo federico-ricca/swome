@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
+
 public abstract class DefaultArtefactProcessor<T extends Artefact, R extends Artefact>
 		implements ArtefactProcessor<T> {
 	private List<ArtefactProcessorStep<Artefact>> artefactSteps = new ArrayList<ArtefactProcessorStep<Artefact>>();
@@ -24,7 +26,8 @@ public abstract class DefaultArtefactProcessor<T extends Artefact, R extends Art
 							List<Artefact> results = this.mainStep(
 									_resultArtefact, _graph);
 
-							_graph.addArtefacts(results);
+							// TODO: replace by graph.add ( vertices )
+						//	_graph.addArtefacts(results);
 
 							this.performAdditionalArtefactSteps(
 									_resultArtefact, _graph);
@@ -42,7 +45,8 @@ public abstract class DefaultArtefactProcessor<T extends Artefact, R extends Art
 		for (ArtefactProcessorStep<Artefact> _step : artefactSteps) {
 			List<Artefact> results = _step.perform(_artefact, _graph);
 
-			_graph.addArtefacts(results);
+			// TODO: replace by graph.add ( vertex )
+		//	_graph.addArtefacts(results);
 		}
 	}
 

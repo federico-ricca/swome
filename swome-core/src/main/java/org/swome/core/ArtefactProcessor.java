@@ -17,6 +17,8 @@ package org.swome.core;
 
 import java.util.Collection;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
+
 public interface ArtefactProcessor<T extends Artefact> {
 
 	public void process(Collection<T> _artefacts, Graph _graph);

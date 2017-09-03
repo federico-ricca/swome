@@ -15,13 +15,20 @@
  ***************************************************************************/
 package org.swome.usecases;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.junit.Assert;
 import org.junit.Test;
 import org.swome.core.GraphFactory;
 import org.swome.core.Pipeline;
+import org.swome.core.Resource;
 import org.swome.extraction.ResourceProcessor;
 import org.swome.impl.titandb.InMemoryTitanGraphFactory;
+import org.swome.util.FileCollector;
 
 public class ArtefactToArtefactProcessing {
 	/*
@@ -164,6 +171,42 @@ public class ArtefactToArtefactProcessing {
 		GraphFactory graphFactory = new InMemoryTitanGraphFactory();
 		
 		ResourceProcessor processor = new ResourceProcessor() {
+
+			@Override
+			public Iterator<Resource> iterator() {
+				FileCollector fileCollector = new FileCollector(new File("./src"));
+				final Iterator<File> it = fileCollector.collect().iterator();
+				
+				return new Iterator<Resource>() {
+
+					@Override
+					public boolean hasNext() {
+						return it.hasNext();
+					}
+
+					@Override
+					public Resource next() {
+						final File _f = it.next();
+						
+						if (_f == null) {
+							return null;
+						}
+						
+						return new Resource() {
+							
+							@Override
+							public Map<String, String> getProperties() {
+								return null;
+							}
+							
+							@Override
+							public String getName() {
+								return _f.getPath();
+							}
+						};
+					}
+				};
+			}
 			
 		};
 		

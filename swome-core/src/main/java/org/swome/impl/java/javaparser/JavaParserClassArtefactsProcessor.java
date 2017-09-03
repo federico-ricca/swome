@@ -2,11 +2,11 @@ package org.swome.impl.java.javaparser;
 
 import java.util.List;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.swome.core.Artefact;
 import org.swome.core.ArtefactFactory;
 import org.swome.core.DefaultArtefactProcessor;
 import org.swome.core.FileArtefact;
-import org.swome.core.Graph;
 import org.swome.impl.java.groovyparser.GroovyClassArtefact;
 
 public class JavaParserClassArtefactsProcessor extends

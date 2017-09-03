@@ -18,6 +18,8 @@ package org.swome.core;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.tinkerpop.gremlin.structure.Graph;
+
 public interface GraphWriter {
 
 	public void write(Graph _graph, File _file,
